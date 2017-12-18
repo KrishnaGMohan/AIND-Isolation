@@ -24,6 +24,8 @@ class IsolationTest(unittest.TestCase):
         # TODO: All methods must start with "test_"
         self.fail("Hello, World!")
 
+    def test_minimax(self):
+        self.setUp()
 
 if __name__ == '__main__':
     unittest.main()
