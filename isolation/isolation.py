@@ -331,7 +331,14 @@ class Board(object):
 
             if move_end < 0:
                 return self._inactive_player, move_history, "timeout"
-
+            
+# =============================================================================
+#             print('--------------------------------------------')
+#             print(self.active_player)
+#             print(curr_move)  # for debugging only - remove after tests
+#             print(legal_player_moves) # for debugging only - remove after tests
+#             print('--------------------------------------------')
+# =============================================================================
             if curr_move not in legal_player_moves:
                 if len(legal_player_moves) > 0:
                     return self._inactive_player, move_history, "forfeit"

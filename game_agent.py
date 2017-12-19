@@ -9,19 +9,6 @@ class SearchTimeout(Exception):
     """Subclass base exception for code clarity. """
     pass
 
-# =============================================================================
-# def terminal_test(game, player, depth):
-#     """ Return True if the game is over for the active player
-#     and False otherwise.
-#     """
-#     if self.time_left() < self.TIMER_THRESHOLD:
-#         raise SearchTimeout()
-#     
-#     if depth == 0:
-#         return False
-#     else:
-#         return game.utility(self)
-# =============================================================================
         
 def min_value(game, player, depth):
     """ Return the value for a win (+1) if the game is over,
@@ -31,14 +18,16 @@ def min_value(game, player, depth):
     if player.time_left() < player.TIMER_THRESHOLD:
         raise SearchTimeout()
     
-    utility = game.utility(player)
+    #utility = game.utility(player)
     
-    if utility != 0:
-        return utility
+    #if utility != 0:
+    #    return utility
 
-    opponent = game.get_opponent(player)    
+    opponent = game.get_opponent(player) 
+       
     if depth == 0:
-        val = len(game.get_legal_moves(player)) - len(game.get_legal_moves(opponent))
+        #val = len(game.get_legal_moves(opponent)) - len(game.get_legal_moves(player))
+        val = len(game.get_legal_moves(opponent))
         return val
     
     val = float("inf")
@@ -55,14 +44,16 @@ def max_value(game, player, depth):
     if player.time_left() < player.TIMER_THRESHOLD:
         raise SearchTimeout()
             
-    utility = game.utility(player)
+    #utility = game.utility(player)
         
-    if utility != 0:
-        return utility
+    #if utility != 0:
+    #    return utility
 
-    opponent = game.get_opponent(player)        
+    opponent = game.get_opponent(player)  
+
     if depth == 0:
-        val = len(game.get_legal_moves(player)) - len(game.get_legal_moves(opponent))
+        #val = len(game.get_legal_moves(player)) - len(game.get_legal_moves(opponent))
+        val = len(game.get_legal_moves(player))
         return val
         
     val = float("-inf")
@@ -99,25 +90,25 @@ def custom_score(game, player):
     if player.time_left() < player.TIMER_THRESHOLD:
         raise SearchTimeout()
         
-    depth = player.search_depth
-    utility = game.utility(player)
+    depth = player.search_depth - 1
+    #utility = game.utility(player)
     
-    if utility != 0:
-        return utility
+    #if utility != 0:
+    #    return utility
     
     opponent = game.get_opponent(player)
+
     if depth == 0:
-        val = len(game.get_legal_moves(player)) - len(game.get_legal_moves(opponent))
+        #val = len(game.get_legal_moves(opponent)) - len(game.get_legal_moves(player ))
+        val = len(game.get_legal_moves(opponent))
         return val
     
-    #best_move = (-1, -1)
     best_score = float("+inf")
     for move in game.get_legal_moves(opponent):
         val = max_value(game.forecast_move(move), player, depth-1)
-        if val < best_score:
-            best_move = move
+        if val <= best_score:
             best_score = val
-    #print(best_move, ' : ', best_score)
+
     return best_score
     
 def custom_score_2(game, player):
@@ -253,48 +244,6 @@ class MinimaxPlayer(IsolationPlayer):
         return best_move
     
 
-
-# =============================================================================
-#     def score(self, game, depth):
-#         """
-#         Inplementing self.score as per instructions
-# 
-#         Parameters
-#         ----------
-#         game : isolation.Board
-#             An instance of the Isolation game `Board` class representing the
-#             current game state
-# 
-#         depth : int
-#             Depth is an integer representing the maximum number of plies to
-#             search in the game tree before aborting
-# 
-#         Returns
-#         -------
-#         int
-#             The value of the board per score
-#         """        
-#         if self.time_left() < self.TIMER_THRESHOLD:
-#             raise SearchTimeout()
-#                 
-#         utility = game.utility(self)
-#         
-#         if utility != 0:
-#             return utility
-#         
-#         if depth == 0:
-#             opponent = game.get_opponent(self)
-#             val = len(game.get_legal_moves(self)) - len(game.get_legal_moves(opponent))
-#             return val
-#         
-#         for move in game.get_legal_moves():
-#             val = self.max_value(game.forecast_move(move), depth-1)
-#             if val < best_score:
-#                 best_score = val
-#         
-#         return best_score           
-# =============================================================================
-       
     def minimax(self, game, depth):
         """Implement depth-limited minimax search algorithm as described in
         the lectures.
@@ -334,6 +283,7 @@ class MinimaxPlayer(IsolationPlayer):
                 each helper function or else your agent will timeout during
                 testing.
         """
+        # TODO: finish this function!        
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()        
         
@@ -342,15 +292,12 @@ class MinimaxPlayer(IsolationPlayer):
         
         for move in game.get_legal_moves(self):
             val = self.score(game.forecast_move(move),self)
-            if val > best_score:
+            if val >= best_score:
                 best_score = val
                 best_move = move
-        
         return best_move           
 
-        
-        # TODO: finish this function!
-        # return max(game.get_legal_moves(), key = lambda x:self._min_value(game.forecast_move(x), depth))
+
    
 
 class AlphaBetaPlayer(IsolationPlayer):
