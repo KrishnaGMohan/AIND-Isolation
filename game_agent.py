@@ -35,14 +35,14 @@ def min_value(game, player, depth):
     
     if utility != 0:
         return utility
-    
+
+    opponent = game.get_opponent(player)    
     if depth == 0:
-        opponent = game.get_opponent(player)
         val = len(game.get_legal_moves(player)) - len(game.get_legal_moves(opponent))
         return val
     
     val = float("inf")
-    for move in game.get_legal_moves():
+    for move in game.get_legal_moves(opponent):
         val = min(val,max_value(game.forecast_move(move), player, depth-1))
     return val
 
@@ -59,14 +59,14 @@ def max_value(game, player, depth):
         
     if utility != 0:
         return utility
-        
+
+    opponent = game.get_opponent(player)        
     if depth == 0:
-        opponent = game.get_opponent(player)
         val = len(game.get_legal_moves(player)) - len(game.get_legal_moves(opponent))
         return val
         
     val = float("-inf")
-    for move in game.get_legal_moves():
+    for move in game.get_legal_moves(player):
         val = max(val,min_value(game.forecast_move(move), player, depth-1))
     return val
 
@@ -105,14 +105,14 @@ def custom_score(game, player):
     if utility != 0:
         return utility
     
+    opponent = game.get_opponent(player)
     if depth == 0:
-        opponent = game.get_opponent(player)
         val = len(game.get_legal_moves(player)) - len(game.get_legal_moves(opponent))
         return val
     
     #best_move = (-1, -1)
     best_score = float("+inf")
-    for move in game.get_legal_moves():
+    for move in game.get_legal_moves(opponent):
         val = max_value(game.forecast_move(move), player, depth-1)
         if val < best_score:
             best_move = move
@@ -340,7 +340,7 @@ class MinimaxPlayer(IsolationPlayer):
         best_score = float("-inf")
         best_move = (-1, -1)
         
-        for move in game.get_legal_moves():
+        for move in game.get_legal_moves(self):
             val = self.score(game.forecast_move(move),self)
             if val > best_score:
                 best_score = val
