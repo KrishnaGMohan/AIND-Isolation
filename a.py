@@ -15,6 +15,19 @@ player1 = game_agent.MinimaxPlayer(search_depth = 2)
 player2 = game_agent.MinimaxPlayer(search_depth = 2)
 game = isolation.Board(player1, player2)
 
+# =============================================================================
+# print(player1.get_move(game,time_left))
+# game.apply_move((4,4))
+# print(player2.get_move(game,time_left))
+# game.apply_move((3,4))
+# print(player1.get_move(game,time_left))
+# game.apply_move((3,2))
+# print(player2.get_move(game,time_left))
+# game.apply_move((4,2))
+# print(game.print_board())
+# =============================================================================
+
+
 wplayer = game_agent.MinimaxPlayer()
 moves_list = []
 wreason = ''
