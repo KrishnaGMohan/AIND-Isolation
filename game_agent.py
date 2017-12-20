@@ -36,7 +36,7 @@ def custom_score(game, player):
     # TODO: finish this function!
         
     val = len(game.get_legal_moves(player))
-    return val
+    return float(val)
     
 def custom_score_2(game, player):
     """Calculate the heuristic value of a game state from the point of view
@@ -227,6 +227,29 @@ class MinimaxPlayer(IsolationPlayer):
         return best_move           
 
 
+    def max_value(self, game, depth):
+        """ Return the value for a loss (-1) if the game is over,
+        otherwise return the maximum value over all legal child
+        nodes.
+        """
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+                
+        #utility = game.utility(player)
+            
+        #if utility != 0:
+        #    return utility
+    
+        if depth == 0:
+            val = self.score(game, self)
+            return val
+            
+        val = float("-inf")
+        for move in game.get_legal_moves(self):
+            val = max(val,self.min_value(game.forecast_move(move), depth-1))
+        return val
+
+    
     def min_value(self, game, depth):
         """ Return the value for a win (+1) if the game is over,
         otherwise return the minimum value over all legal child
@@ -252,27 +275,7 @@ class MinimaxPlayer(IsolationPlayer):
         return val
     
         
-    def max_value(self, game, depth):
-        """ Return the value for a loss (-1) if the game is over,
-        otherwise return the maximum value over all legal child
-        nodes.
-        """
-        if self.time_left() < self.TIMER_THRESHOLD:
-            raise SearchTimeout()
-                
-        #utility = game.utility(player)
-            
-        #if utility != 0:
-        #    return utility
-    
-        if depth == 0:
-            val = self.score(game, self)
-            return val
-            
-        val = float("-inf")
-        for move in game.get_legal_moves(self):
-            val = max(val,self.min_value(game.forecast_move(move), depth-1))
-        return val
+
 
 
 
@@ -400,6 +403,31 @@ class AlphaBetaPlayer(IsolationPlayer):
             
         return best_move     
 
+    def max_value(self, game, alpha, beta, depth):
+        """ Return the value for a loss (-1) if the game is over,
+        otherwise return the maximum value over all legal child
+        nodes.
+        """
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+                
+        #utility = game.utility(player)
+            
+        #if utility != 0:
+        #    return utility
+    
+        if depth == 0:
+            val = self.score(game, self)
+            return val
+            
+        val = float("-inf")
+        for move in game.get_legal_moves(self):
+            val = max(val,self.min_value(game.forecast_move(move), alpha, beta, depth-1))
+            if val >= beta:
+                return val
+            alpha = max(alpha, val)
+        return val
+
     def min_value(self, game, alpha, beta, depth):
         """ Return the value for a win (+1) if the game is over,
         otherwise return the minimum value over all legal child
@@ -428,27 +456,3 @@ class AlphaBetaPlayer(IsolationPlayer):
         return val
     
         
-    def max_value(self, game, alpha, beta, depth):
-        """ Return the value for a loss (-1) if the game is over,
-        otherwise return the maximum value over all legal child
-        nodes.
-        """
-        if self.time_left() < self.TIMER_THRESHOLD:
-            raise SearchTimeout()
-                
-        #utility = game.utility(player)
-            
-        #if utility != 0:
-        #    return utility
-    
-        if depth == 0:
-            val = self.score(game, self)
-            return val
-            
-        val = float("-inf")
-        for move in game.get_legal_moves(self):
-            val = max(val,self.min_value(game.forecast_move(move), alpha, beta, depth-1))
-            if val >= beta:
-                return val
-            alpha = max(alpha, val)
-        return val
