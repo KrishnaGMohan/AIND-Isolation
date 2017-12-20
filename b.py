@@ -13,15 +13,17 @@ def time_left():
 player1 = game_agent.MinimaxPlayer(search_depth = 2)
 player2 = game_agent.MinimaxPlayer(search_depth = 2)
 game = isolation.Board(player1, player2)
-game._board_state = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 66, 46]
+game._board_state = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 68, 60]
 print(game.print_board())
-
-wplayer = game_agent.MinimaxPlayer()
-moves_list = []
-wreason = ''
-
-wplayer, moves_list,wreason = game.play(time_limit=1000000.)
-print(wplayer)
-print(moves_list)
-print(wreason)
-print(game.print_board())
+print(player1.get_move(game,time_left))
+# =============================================================================
+# wplayer = game_agent.MinimaxPlayer()
+# moves_list = []
+# wreason = ''
+# 
+# wplayer, moves_list,wreason = game.play(time_limit=1000000.)
+# print(wplayer)
+# print(moves_list)
+# print(wreason)
+# print(game.print_board())
+# =============================================================================
