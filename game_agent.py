@@ -275,12 +275,6 @@ class MinimaxPlayer(IsolationPlayer):
         return val
     
         
-
-
-
-
-   
-
 class AlphaBetaPlayer(IsolationPlayer):
     """Game-playing agent that chooses a move using iterative deepening minimax
     search with alpha-beta pruning. You must finish and test this player to
@@ -324,14 +318,21 @@ class AlphaBetaPlayer(IsolationPlayer):
         # Initialize the best move so that this function returns something
         # in case the search fails due to timeout
         best_move = (-1, -1)
-
+        
         try:
+            max_depth = (game.width * game.height) - game.move_count
+            #print(max_depth)
             # The try/except block will automatically catch the exception
             # raised when the timer is about to expire.
-            return self.alphabeta(game, self.search_depth)
+            for depth in range(1, max_depth):
+                best_move = self.alphabeta(game, depth)
+            
+            # return self.alphabeta(game, self.search_depth)
 
         except SearchTimeout:
-            pass  # Handle any actions required after timeout as needed
+            #print('depth:', depth, 'best move:', best_move, ' player:', self)
+            return best_move
+            # pass  # Handle any actions required after timeout as needed
 
         # Return the best move from the last completed search iteration
         return best_move
