@@ -34,8 +34,33 @@ def custom_score(game, player):
         The heuristic value of the current game state to the specified player.
     """
     # TODO: finish this function!
-        
-    val = len(game.get_legal_moves(player))
+    
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+    
+    opp = game.get_opponent(player)
+    
+    own_moves = len(game.get_legal_moves(player))
+    opp_moves = len(game.get_legal_moves(opp))
+    
+    val = float(own_moves - opp_moves)
+    
+    own_loc = game.get_player_location(player)
+    opp_loc = game.get_player_location(opp)
+    
+    if opp_loc is None:
+        return val
+    
+    r, c = opp_loc
+    directions = [(-2, -1), (-2, 1), (-1, -2), (-1, 2),
+                  (1, -2), (1, 2), (2, -1), (2, 1)]
+    
+    if own_loc in [(r + dr, c + dc) for dr, dc in directions]:
+        val = val + 1
+                        
     return float(val)
     
 def custom_score_2(game, player):
@@ -61,7 +86,14 @@ def custom_score_2(game, player):
         The heuristic value of the current game state to the specified player.
     """
     # TODO: finish this function!
-    raise NotImplementedError
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    val = float(len(game.get_legal_moves(player)))
+    return val
 
 
 def custom_score_3(game, player):
@@ -87,7 +119,14 @@ def custom_score_3(game, player):
         The heuristic value of the current game state to the specified player.
     """
     # TODO: finish this function!
-    raise NotImplementedError
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+    
+    val = float(len(game.get_legal_moves(player)))
+    return val
 
 
 class IsolationPlayer:
@@ -317,7 +356,13 @@ class AlphaBetaPlayer(IsolationPlayer):
                 
         # Initialize the best move so that this function returns something
         # in case the search fails due to timeout
+        
         best_move = (-1, -1)
+        
+        legal_moves = game.get_legal_moves(self)
+        
+        if len(legal_moves) > 0:
+            best_move = legal_moves[0]
         
         try:
             max_depth = (game.width * game.height) - game.move_count
@@ -391,7 +436,12 @@ class AlphaBetaPlayer(IsolationPlayer):
         best_score = float("-inf")
         best_move = (-1, -1)
         
-        for move in game.get_legal_moves(self):
+        legal_moves = game.get_legal_moves(self)
+        
+        if len(legal_moves) > 0:
+            best_move = legal_moves[0]
+            
+        for move in legal_moves:
             val = self.min_value(game.forecast_move(move), alpha, beta, depth-1)
 
             if val > best_score:

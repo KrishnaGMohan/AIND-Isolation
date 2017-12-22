@@ -26,6 +26,7 @@ from game_agent import (MinimaxPlayer, AlphaBetaPlayer, custom_score,
 NUM_MATCHES = 5  # number of matches against each opponent
 TIME_LIMIT = 150  # number of milliseconds before timeout
 
+
 DESCRIPTION = """
 This script evaluates the performance of the custom_score evaluation
 function against a baseline agent using alpha-beta search and iterative
