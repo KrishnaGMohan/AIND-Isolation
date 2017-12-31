@@ -34,35 +34,42 @@ def custom_score(game, player):
         The heuristic value of the current game state to the specified player.
     """
     # TODO: finish this function!
-    
     if game.is_loser(player):
         return float("-inf")
 
     if game.is_winner(player):
         return float("inf")
-    
+
+   
     opp = game.get_opponent(player)
     
-    own_moves = len(game.get_legal_moves(player))
-    opp_moves = len(game.get_legal_moves(opp))
-    
-    val = float(own_moves - opp_moves)
+    own_moves_list = game.get_legal_moves(player)
+    opp_moves_list = game.get_legal_moves(opp)
+    own_moves = len(own_moves_list)
+    opp_moves = len(opp_moves_list)
     
     own_loc = game.get_player_location(player)
-    opp_loc = game.get_player_location(opp)
+    opp_loc = game.get_player_location(opp)   
     
     if opp_loc is None:
-        return val
+        return float(own_moves - opp_moves)
     
-    r, c = opp_loc
-    directions = [(-2, -1), (-2, 1), (-1, -2), (-1, 2),
+    if abs(sum(own_loc)%2 - sum(opp_loc)%2) == 1:
+        r, c = opp_loc
+        directions = [(-2, -1), (-2, 1), (-1, -2), (-1, 2),
                   (1, -2), (1, 2), (2, -1), (2, 1)]
     
-    if own_loc in [(r + dr, c + dc) for dr, dc in directions]:
-        val = val + 1
-                        
+        if own_loc in [(r + dr, c + dc) for dr, dc in directions]:
+            own_moves = own_moves + own_moves * (9.-opp_moves)/8.
+            
+    else:
+        if len([i for i in own_moves_list if i in opp_moves_list]) != 0:
+            own_moves = own_moves - own_moves * (9.-own_moves)/8.
+        
+    val = float(own_moves - opp_moves)
     return float(val)
-    
+  
+
 def custom_score_2(game, player):
     """Calculate the heuristic value of a game state from the point of view
     of the given player.
@@ -70,6 +77,10 @@ def custom_score_2(game, player):
     Note: this function should be called from within a Player instance as
     `self.score()` -- you should not need to call this function directly.
 
+    Find the square with the least number of onward moves with the number of
+    moves greater than 0. If there is only one onward move then choose that 
+    only if the onward move cannot be blocked by the opponent
+    
     Parameters
     ----------
     game : `isolation.Board`
@@ -88,12 +99,27 @@ def custom_score_2(game, player):
     # TODO: finish this function!
     if game.is_loser(player):
         return float("-inf")
-
+ 
     if game.is_winner(player):
         return float("inf")
 
-    val = float(len(game.get_legal_moves(player)))
-    return val
+    own_moves_list = game.get_legal_moves(player)
+    own_moves = len(own_moves_list)
+    val = float(9-own_moves)
+    
+    if val == 9.0:
+        return float("-inf")
+    
+    if val == 8.0:
+        only_own_move = own_moves_list[0]
+        game_think = game.forecast_move(only_own_move)
+        if len(game_think.get_legal_moves(player)) > 0:
+            return val
+        else:
+            return float(-100)
+    else:
+        return val
+   
 
 
 def custom_score_3(game, player):
@@ -119,14 +145,55 @@ def custom_score_3(game, player):
         The heuristic value of the current game state to the specified player.
     """
     # TODO: finish this function!
+   
     if game.is_loser(player):
         return float("-inf")
 
     if game.is_winner(player):
         return float("inf")
+
+    opp = game.get_opponent(player)
     
-    val = float(len(game.get_legal_moves(player)))
-    return val
+    own_ktour_length = ktour_length(game, player)
+    opp_ktour_length = ktour_length(game, opp)    
+    
+    own_moves = len(game.get_legal_moves(player))
+    opp_moves = len(game.get_legal_moves(opp))
+        
+    return float((own_ktour_length + own_moves) - (opp_ktour_length + opp_moves))
+
+
+def ktour_length(game, player):
+    tmpgame = game.copy()
+    ktour_length = 0
+    
+    while tmpgame.get_legal_moves(player):
+        candidate_moves = []
+        move_count = []
+        tmp_moves_list = tmpgame.get_legal_moves(player)
+   
+        for m in tmp_moves_list:
+            x = tmpgame.forecast_move(m)
+            move_count.append(len(x.get_legal_moves(player)))
+        
+        min_move_list = list(filter(lambda a: a != 0, move_count))
+        if len(min_move_list) == 0:
+            return ktour_length + 1
+        
+        min_move_count = min(min_move_list)
+        
+        for i in range(len(move_count)):
+            if move_count[i] == min_move_count:
+                candidate_moves.append(tmp_moves_list[i])
+    
+        move = candidate_moves[random.randint(0,len(candidate_moves)-1)]
+        tmpgame.apply_move(move)
+        tmpgame._active_player, tmpgame._inactive_player = tmpgame._inactive_player, tmpgame._active_player
+        
+        ktour_length = ktour_length + 1
+    
+    return ktour_length
+
 
 
 class IsolationPlayer:
@@ -196,7 +263,13 @@ class MinimaxPlayer(IsolationPlayer):
 
         # Initialize the best move so that this function returns something
         # in case the search fails due to timeout
+        
         best_move = (-1, -1)
+        
+        legal_moves = game.get_legal_moves(self)
+        
+        if len(legal_moves) > 0:
+            best_move = legal_moves[0]
 
         try:
             # The try/except block will automatically catch the exception
@@ -204,7 +277,7 @@ class MinimaxPlayer(IsolationPlayer):
             return self.minimax(game, self.search_depth)
 
         except SearchTimeout:
-            pass  # Handle any actions required after timeout as needed
+            return best_move  # Handle any actions required after timeout as needed
 
         # Return the best move from the last completed search iteration
         return best_move
@@ -256,6 +329,11 @@ class MinimaxPlayer(IsolationPlayer):
         best_score = float("-inf")
         best_move = (-1, -1)
         
+        legal_moves = game.get_legal_moves(self)
+        
+        if len(legal_moves) > 0:
+            best_move = legal_moves[0]
+        
         for move in game.get_legal_moves(self):
             val = self.min_value(game.forecast_move(move), depth-1)
 
@@ -273,11 +351,6 @@ class MinimaxPlayer(IsolationPlayer):
         """
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
-                
-        #utility = game.utility(player)
-            
-        #if utility != 0:
-        #    return utility
     
         if depth == 0:
             val = self.score(game, self)
@@ -297,11 +370,6 @@ class MinimaxPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
         
-        #utility = game.utility(player)
-        
-        #if utility != 0:
-        #    return utility
-    
         opponent = game.get_opponent(self) 
            
         if depth == 0:
@@ -364,20 +432,15 @@ class AlphaBetaPlayer(IsolationPlayer):
         if len(legal_moves) > 0:
             best_move = legal_moves[0]
         
-        try:
-            max_depth = (game.width * game.height) - game.move_count
-            #print(max_depth)
+        max_depth = (game.width * game.height) - game.move_count
             # The try/except block will automatically catch the exception
             # raised when the timer is about to expire.
+        try:
             for depth in range(1, max_depth):
                 best_move = self.alphabeta(game, depth)
-            
-            # return self.alphabeta(game, self.search_depth)
-
+                
         except SearchTimeout:
-            #print('depth:', depth, 'best move:', best_move, ' player:', self)
-            return best_move
-            # pass  # Handle any actions required after timeout as needed
+                return best_move
 
         # Return the best move from the last completed search iteration
         return best_move
@@ -462,11 +525,6 @@ class AlphaBetaPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
                 
-        #utility = game.utility(player)
-            
-        #if utility != 0:
-        #    return utility
-    
         if depth == 0:
             val = self.score(game, self)
             return val
@@ -486,11 +544,6 @@ class AlphaBetaPlayer(IsolationPlayer):
         """
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
-        
-        #utility = game.utility(player)
-        
-        #if utility != 0:
-        #    return utility
     
         opponent = game.get_opponent(self) 
            
