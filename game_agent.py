@@ -18,6 +18,37 @@ def custom_score(game, player):
     Note: this function should be called from within a Player instance as
     `self.score()` -- you should not need to call this function directly.
 
+    ----------------------------------------------------------------------
+    
+    Chase or Run
+
+    Adjust the values as per the following rules:
+        If the players are on squares of different colors:
+            If the player is located on one of the opponents possible move squares:
+                Increase the value by a factor of number of possible opponent 
+                moves by 8
+        else if the players are on squares of the same color:
+            If the opponent can block the player on the next move:
+                Reduce the value by a factor of the number of possible moves 
+                by 8
+                
+    The effect is that:
+        If the players are on squares of opposite color, preference is given to 
+        moves that block the opponent. The weight is adjusted according to the number
+        of moves available to the opponent. If the opponent has less squares
+        then the higher the preference to blocking the opponent
+        
+        If the players are on squares of the same color, then it is possible
+        that the opponent can block the player on the next move. So preference 
+        is given to positions where the opponent cannot play a blocking move.
+        The weight is in proportion to the number of moves available to the 
+        player. The effect is that the player tends to move away from the 
+        opponent
+        
+        The difference of player moves and opponent moves then give the final
+        evaluation
+        
+    ----------------------------------------------------------------------
     Parameters
     ----------
     game : `isolation.Board`
@@ -54,15 +85,19 @@ def custom_score(game, player):
     if opp_loc is None:
         return float(own_moves - opp_moves)
     
+    #if players are on the opposite color
     if abs(sum(own_loc)%2 - sum(opp_loc)%2) == 1:
         r, c = opp_loc
         directions = [(-2, -1), (-2, 1), (-1, -2), (-1, 2),
                   (1, -2), (1, 2), (2, -1), (2, 1)]
-    
+        
+        # Adjust own_moves score if opponent is being restricted
         if own_loc in [(r + dr, c + dc) for dr, dc in directions]:
             own_moves = own_moves + own_moves * (9.-opp_moves)/8.
             
     else:
+        # if players are on the same color squares
+        # Reduce own_moves score if opponent can block on next move
         if len([i for i in own_moves_list if i in opp_moves_list]) != 0:
             own_moves = own_moves - own_moves * (9.-own_moves)/8.
         
@@ -77,10 +112,25 @@ def custom_score_2(game, player):
     Note: this function should be called from within a Player instance as
     `self.score()` -- you should not need to call this function directly.
 
-    Find the square with the least number of onward moves with the number of
-    moves greater than 0. If there is only one onward move then choose that 
-    only if the onward move cannot be blocked by the opponent
+    ----------------------------------------------------------------------
+    Least Onward Squares
     
+    This idea comes from Warnsdorf's rule. 
+    https://en.wikipedia.org/wiki/Knight%27s_tour
+    
+    The idea is to keep the knight on the board for the longest time, which
+    means we try and do a knight's tour algorithm. The knight is moved so that 
+    it always proceeds to the square from which the knight will have the fewest 
+    onward moves.
+    
+    This has one issue though: the knight will try to go to a square with no
+    moves. To counter this, we modify the rule a bit to find the square with
+    the fewest onward moves, but only it it has at least one onward move.
+    
+    If there is only one onward move then choose that only if the onward move 
+    cannot be blocked by the opponent
+    ----------------------------------------------------------------------
+   
     Parameters
     ----------
     game : `isolation.Board`
@@ -96,7 +146,7 @@ def custom_score_2(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
+
     if game.is_loser(player):
         return float("-inf")
  
@@ -110,15 +160,19 @@ def custom_score_2(game, player):
     if val == 9.0:
         return float("-inf")
     
+    # if player has only one move left
     if val == 8.0:
-        only_own_move = own_moves_list[0]
-        game_think = game.forecast_move(only_own_move)
-        if len(game_think.get_legal_moves(player)) > 0:
-            return val
+        game_think = game.forecast_move(own_moves_list[0])
+        opp_moves_list = game.get_legal_moves(game.get_opponent(player))
+        
+        # check if there is atleast one onward move
+        if len(game_think.get_legal_moves(player)) > 0 :
+            if len([i for i in own_moves_list if i in opp_moves_list]) == 0:
+                return val
         else:
             return float(-100)
-    else:
-        return val
+
+    return val
    
 
 
@@ -128,7 +182,28 @@ def custom_score_3(game, player):
 
     Note: this function should be called from within a Player instance as
     `self.score()` -- you should not need to call this function directly.
-
+    
+    ----------------------------------------------------------------------
+    Longer Tour
+    
+    This heuristic evaluates the position by comparing the length of the 
+    player's knights tour and the number of open moves to that of the opponent. 
+    
+    The difference between the lengths + open moves of player to the 
+    opponent is the value of the position.
+    
+    The idea is that the player seeks to retain the knight for longer on the
+    board while trying to shorten the opponents knights tour length. At the 
+    same time the player seeks to find the position with the mosr open moves.
+    
+    
+    This idea comes from Warnsdorf's rule. The knight is moved so that it 
+    always proceeds to the square from which the knight will have the fewest 
+    onward moves.
+    
+    https://en.wikipedia.org/wiki/Knight%27s_tour
+    ----------------------------------------------------------------------
+    
     Parameters
     ----------
     game : `isolation.Board`
@@ -144,8 +219,7 @@ def custom_score_3(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
-   
+  
     if game.is_loser(player):
         return float("-inf")
 
@@ -161,9 +235,19 @@ def custom_score_3(game, player):
     opp_moves = len(game.get_legal_moves(opp))
         
     return float((own_ktour_length + own_moves) - (opp_ktour_length + opp_moves))
+    
 
 
 def ktour_length(game, player):
+    '''
+    This idea comes from Warnsdorf's rule. The knight is moved so that it 
+    always proceeds to the square from which the knight will have the fewest 
+    onward moves.
+    
+    https://en.wikipedia.org/wiki/Knight%27s_tour
+
+    '''
+    # make a copy of the game
     tmpgame = game.copy()
     ktour_length = 0
     
@@ -172,22 +256,31 @@ def ktour_length(game, player):
         move_count = []
         tmp_moves_list = tmpgame.get_legal_moves(player)
    
+        # make a list of all legal moves and the number of onward moves
         for m in tmp_moves_list:
             x = tmpgame.forecast_move(m)
             move_count.append(len(x.get_legal_moves(player)))
         
+        # get a list of moves where the there is at least one onward move
         min_move_list = list(filter(lambda a: a != 0, move_count))
         if len(min_move_list) == 0:
             return ktour_length + 1
         
-        min_move_count = min(min_move_list)
         
+        min_move_count = min(min_move_list)
+        # get a list of candidate moves which have the least onward moves
+        # and have at least one onward move
         for i in range(len(move_count)):
             if move_count[i] == min_move_count:
                 candidate_moves.append(tmp_moves_list[i])
-    
+        
+        # choose a candidate move from the list at random 
         move = candidate_moves[random.randint(0,len(candidate_moves)-1)]
+        
+        #apply the move on the copy of the board
         tmpgame.apply_move(move)
+        
+        #apply_move switches players, so switch back players
         tmpgame._active_player, tmpgame._inactive_player = tmpgame._inactive_player, tmpgame._active_player
         
         ktour_length = ktour_length + 1
